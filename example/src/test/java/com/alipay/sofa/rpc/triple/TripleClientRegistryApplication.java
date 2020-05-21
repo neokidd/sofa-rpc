@@ -20,6 +20,7 @@ import com.alipay.sofa.rpc.common.RpcConstants;
 import com.alipay.sofa.rpc.config.ApplicationConfig;
 import com.alipay.sofa.rpc.config.ConsumerConfig;
 import com.alipay.sofa.rpc.log.Logger;
+import com.alipay.sofa.rpc.config.*;
 import com.alipay.sofa.rpc.log.LoggerFactory;
 import io.grpc.StatusRuntimeException;
 import io.grpc.examples.helloworld.HelloReply;
@@ -29,6 +30,20 @@ import io.grpc.examples.helloworld.SofaGreeterTriple;
 /**
  * @author <a href="mailto:luanyanqiang@dibgroup.cn">Luan Yanqiang</a>
  */
+
+
+// IMPORTANT NOTE: Ant Financial revised grpc compiler. These are mainly two aspects:
+// 1. In my previous compiler, a hack with javaassist to 
+// change bytecode of grpc generated code is used to create a interface, so that interfaceID 
+// param can be determined, which is the unique ID to the RPC. Now they use a maven plugin from Saleforce. 
+// The naming rule of interfaceID is slightly changed, but it still looks good.
+// 2. They created a new protocol called "triple". Looks like "triple" is related to fliggy.com. 
+// "Triple" is on top of gPRC, and can be used almost the same way as gRPC. 
+// To verify my analysis above, these two test, including a server application and a client application are slighted revised. 
+// Test results show positive conclusion.
+
+
+
 public class TripleClientRegistryApplication {
     private final static Logger LOGGER = LoggerFactory.getLogger(TripleClientRegistryApplication.class);
 
@@ -36,16 +51,14 @@ public class TripleClientRegistryApplication {
 
         ApplicationConfig clientApp = new ApplicationConfig().setAppName("triple-client");
 
-        /*   RegistryConfig registryConfig = new RegistryConfig();
-           registryConfig.setProtocol("zookeeper").setAddress("127.0.0.1:2181");*/
+        RegistryConfig registryConfig = new RegistryConfig();
+        registryConfig.setProtocol("zookeeper").setAddress("127.0.0.1:2121");
 
         ConsumerConfig<SofaGreeterTriple.IGreeter> consumerConfig = new ConsumerConfig<SofaGreeterTriple.IGreeter>();
         consumerConfig.setInterfaceId(SofaGreeterTriple.IGreeter.class.getName())
-            .setProtocol(RpcConstants.PROTOCOL_TYPE_TRIPLE)
-            //.setRegistry(registryConfig)
-            .setApplication(clientApp)
-            .setDirectUrl("tri://10.15.232.18:19544")
-            .setRegister(false);
+                .setProtocol(RpcConstants.PROTOCOL_TYPE_TRIPLE).setRegistry(registryConfig).setApplication(clientApp)
+                // .setDirectUrl("tri://10.15.232.18:19544")
+                .setRegister(false);
 
         SofaGreeterTriple.IGreeter greeterBlockingStub = consumerConfig.refer();
 
@@ -53,13 +66,12 @@ public class TripleClientRegistryApplication {
 
         LOGGER.info("Will try to greet " + "world" + " ...");
         HelloRequest.DateTime dateTime = HelloRequest.DateTime.newBuilder().setDate("2018-12-28").setTime("11:13:00")
-            .build();
+                .build();
         HelloRequest request = HelloRequest.newBuilder().setName("world").build();
         HelloReply reply = null;
         try {
             try {
-                HelloRequest.DateTime reqDateTime = HelloRequest.DateTime.newBuilder(dateTime).setTime("")
-                    .build();
+                HelloRequest.DateTime reqDateTime = HelloRequest.DateTime.newBuilder(dateTime).setTime("").build();
                 request = HelloRequest.newBuilder(request).setName("world").setDateTime(reqDateTime).build();
                 reply = greeterBlockingStub.sayHello(request);
                 LOGGER.info("Invoke Success,Greeting: {}, {}", reply.getMessage(), reply.getDateTime().getDate());
