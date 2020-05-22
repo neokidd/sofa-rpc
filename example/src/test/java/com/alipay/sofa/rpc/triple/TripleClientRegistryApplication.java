@@ -41,6 +41,10 @@ import io.grpc.examples.helloworld.SofaGreeterTriple;
 // "Triple" is on top of gPRC, and can be used almost the same way as gRPC. 
 // To verify my analysis above, these two test, including a server application and a client application are slighted revised. 
 // Test results show positive conclusion.
+// 3. Compiler implementation: package com.alipay.sofa.gen.base. $SOFA_RPC/compiler directory. AbstractGenerator ->
+// com.salesforce.jprotoc.Generator -> applyTemplate() (Mustache template).
+// 4. Look like Triple is fully compatible with gRPC. For companies who don't want the confusing name, it can be easily get ride of. It just needs modifying 
+// the class names and interfaces names in  Mustache template at $SOFA_RPC/compiler/src/main/resources/ReactorSofaTripleStub.mustache.  
 
 
 
